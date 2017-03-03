@@ -1,7 +1,6 @@
 # Overview
 This project is a [CloudFormation](https://aws.amazon.com/cloudformation/) template
-that inserts a new [ElastiCache](https://aws.amazon.com/elasticache/) cluster into an existing
-VPC.  
+that inserts a new [ElasticSearch](https://aws.amazon.com/elasticsearch-service/) cluster into a region.
 
 ## Assets Produced
 1. TODO
@@ -17,7 +16,6 @@ The following tags are applied to assets that allow tagging:
 # Prerequisites
 * a working [AW CLI](https://aws.amazon.com/cli/)
 * you have run `aws configure`, providing the required information
-* a working VPC [based on this template]https://github.com/kurron/cloud-formation-vpc)
 
 # Building
 There is noting to build.
@@ -46,7 +44,7 @@ There is a convenience script for destroying clusters.  Run
 `scripts/destroy-stack.sh production-cluster` to destroy the cluster we created above.
 
 ## Creation Via The Console
-TODO: need to talk about getting the `elasticache.yml` file into S3 so that the console can see it
+TODO: need to talk about getting the `elasticsearch.yml` file into S3 so that the console can see it
 
 # Troubleshooting
 TODO

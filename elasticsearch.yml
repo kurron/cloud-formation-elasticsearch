@@ -2,7 +2,7 @@
 # Cannot get this to work for some reason
 #AWSTemplateFormatVersion: AWSTemplateFormatVersion: '2010-09-09'
 
-Description: This template places a new ElastiCache into an existing VPC.
+Description: This template places a new ElasticSearch cluster into a region.
 
 Metadata:
     Foo:
@@ -32,85 +32,81 @@ Parameters:
         Type: 'String'
         Default: 'No notes'
 
-    CachePort:
-        Description: 'The port number on which each of the cache nodes will accept connections.'
+    DomainName:
+        Description: 'A name for the Amazon ES domain'
+        Type: 'String'
+
+    VolumeSize:
+        Description: 'The size of the EBS volume for each data node.'
         Type: 'Number'
-        Default: 6379
+        Default: 10
+
+    VolumeType:
+        Description: 'The EBS volume type to use with the Amazon ES domain, such as standard, gp2, or io1.'
+        Type: 'String'
+        Default: 'gp2'
+
+    Iops:
+        Description: 'The number of I/O operations per second (IOPS) that the volume supports.'
+        Type: 'Number'
+        Default: 0
+
+    InstanceCount:
+        Description: 'The number of data nodes (instances) to use in the Amazon ES domain.'
+        Type: 'Number'
+        Default: 2
 
     InstanceType:
-        Description: 'How large of a box to run your cluster on'
+        Description: 'The instance type for your data nodes, such as m3.medium.elasticsearch.'
         Type: 'String'
-        Default: 'cache.t2.micro'
-
-    VPC:
-        Description: 'VPC ID we are inserting into'
-        Type: String
-
-    Subnets:
-        Description: 'Which subnets the EC2 instances should be deployed to.'
-        Type: List<AWS::EC2::Subnet::Id>
+        Default: 't2.small.elasticsearch'
 
 
 Resources:
-    # unlimited inbound access -- primarily for testing of the network settings
-    WideOpenSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
+    ElasticsearchDomain:
+        Type: AWS::Elasticsearch::Domain
         Properties:
-            GroupDescription: 'Redis port from anywhere'
-            VpcId:
-                Ref: 'VPC'
-            SecurityGroupIngress:
-                - IpProtocol: 'tcp'
-                  FromPort:
-                      Ref: CachePort
-                  ToPort:
-                      Ref: CachePort
-                  CidrIp: 0.0.0.0/0
+            AccessPolicies:
+                Version: '2012-10-17'
+                Statement:
+                    -
+                        Effect: 'Allow'
+                        Principal:
+                            AWS: '*'
+                        Action: "es:*"
+                        Resource:
+                            # 'arn:aws:es:us-east-1:846973539254:domain/test/*'
+                            'Fn::Join': [ '/', ['Fn::Join': [ ':', [ 'arn:aws:es', !Ref 'AWS::Region', !Ref 'AWS::AccountId', 'domain'] ], !Ref 'DomainName', '*' ] ]
+            AdvancedOptions:
+                rest.action.multi.allow_explicit_index: 'true'
+            DomainName:
+                Ref: DomainName
+            EBSOptions:
+                EBSEnabled: true
+                Iops:
+                    Ref: Iops
+                VolumeSize:
+                    Ref: VolumeSize
+                VolumeType:
+                    Ref: VolumeType
+            ElasticsearchClusterConfig:
+                DedicatedMasterEnabled: 'false'
+                InstanceCount:
+                    Ref: InstanceCount
+                InstanceType:
+                    Ref: InstanceType
+                ZoneAwarenessEnabled: 'true'
+            SnapshotOptions:
+                AutomatedSnapshotStartHour: 0
             Tags:
                 - Key: 'Name'
                   Value:
-                      'Fn::Join': [ ':', [ 'Cache', !Ref 'AWS::StackName' ] ]
+                      'Fn::Join': [ ':', [ 'Search', !Ref 'AWS::StackName' ] ]
                 - Key: 'Project'
                   Value:
                       Ref: 'Project'
                 - Key: 'Purpose'
-                  Value: 'Redis access'
-                - Key: 'Creator'
-                  Value:
-                      Ref: 'Creator'
-                - Key: 'Environment'
-                  Value:
-                      Ref: 'Environment'
-                - Key: 'Freetext'
-                  Value: 'Unsafe! Only useful for network testing.'
-
-    SubnetGroup:
-        Type: AWS::ElastiCache::SubnetGroup
-        Properties:
-            Description: "Cache Subnet Group"
-            SubnetIds:
-                Ref: Subnets
-
-    ElastiCacheCluster:
-        Type: AWS::ElastiCache::CacheCluster
-        Properties:
-            CacheNodeType:
-                Ref: InstanceType
-            CacheSubnetGroupName:
-                Ref: SubnetGroup
-            Engine: redis
-            NumCacheNodes: 1
-            Port:
-                Ref: CachePort
-            Tags:
-                - Key: 'Name'
-                  Value:
-                      'Fn::Join': [ ':', [ 'Cache', !Ref 'AWS::StackName' ] ]
-                - Key: 'Project'
-                  Value:
-                      Ref: 'Project'
-                - Key: 'Purpose'
-                  Value: 'Redis Cache'
+                  Value: 'Log searching'
                 - Key: 'Creator'
                   Value:
                       Ref: 'Creator'
@@ -120,13 +116,8 @@ Resources:
                 - Key: 'Freetext'
                   Value:
                       Ref: 'Notes'
-            VpcSecurityGroupIds:
-                - Ref: 'WideOpenSecurityGroup'
 
 Outputs:
-    Address:
-        Description: 'The DNS address of the configuration endpoint for the Redis cache cluster.'
-        Value: !GetAtt ElastiCacheCluster.RedisEndpoint.Address
-    Port:
-        Description: 'The port number of the configuration endpoint for the Redis cache cluster.'
-        Value: !GetAtt ElastiCacheCluster.RedisEndpoint.Port
+    Endpoint:
+        Description: 'The domain-specific endpoint that is used to submit index, search, and data upload requests to an Amazon ES domain.'
+        Value: !GetAtt ElasticsearchDomain.DomainEndpoint
