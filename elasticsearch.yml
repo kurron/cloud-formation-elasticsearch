@@ -61,6 +61,10 @@ Parameters:
         Type: 'String'
         Default: 't2.small.elasticsearch'
 
+    ElasticsearchVersion:
+        Description: 'The version of Elasticsearch to use, such as 5.1.'
+        Type: 'String'
+        Default: '5.1'
 
 Resources:
     ElasticsearchDomain:
@@ -94,6 +98,8 @@ Resources:
                 InstanceType:
                     Ref: InstanceType
                 ZoneAwarenessEnabled: 'true'
+            ElasticsearchVersion:
+                Ref: ElasticsearchVersion
             SnapshotOptions:
                 AutomatedSnapshotStartHour: 0
             Tags:
