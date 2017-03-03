@@ -10,7 +10,7 @@ PROJECTNAME=${5:-Weapon-X}
 ENVIRONMENT=${6:-development}
 CREATOR=${7:-CloudFormation}
 PURPOSE=${8:-Testing}
-TEMPLATELOCATION=${8:-file://$(pwd)/elasticsearch.yml}
+TEMPLATELOCATION=${9:-file://$(pwd)/elasticsearch.yml}
 
 VALIDATE="aws cloudformation validate-template --template-body $TEMPLATELOCATION"
 echo $VALIDATE

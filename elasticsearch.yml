@@ -38,8 +38,8 @@ Parameters:
 
     VolumeSize:
         Description: 'The size of the EBS volume for each data node.'
-        Type: 'Number'
-        Default: 10
+        Type: 'String'
+        Default: '10'
 
     VolumeType:
         Description: 'The EBS volume type to use with the Amazon ES domain, such as standard, gp2, or io1.'
@@ -48,8 +48,8 @@ Parameters:
 
     Iops:
         Description: 'The number of I/O operations per second (IOPS) that the volume supports.'
-        Type: 'Number'
-        Default: 0
+        Type: 'String'
+        Default: '0'
 
     InstanceCount:
         Description: 'The number of data nodes (instances) to use in the Amazon ES domain.'
@@ -66,10 +66,17 @@ Parameters:
         Type: 'String'
         Default: '5.1'
 
+    AllowedCIDR:
+        Description: 'CIDR address of allowed ip addresses'
+        Type: 'String'
+        Default: '64.222.174.146/32'
+
 Resources:
     ElasticsearchDomain:
         Type: AWS::Elasticsearch::Domain
         Properties:
+            AdvancedOptions:
+                rest.action.multi.allow_explicit_index: 'true'
             AccessPolicies:
                 Version: '2012-10-17'
                 Statement:
@@ -81,6 +88,11 @@ Resources:
                         Resource:
                             # 'arn:aws:es:us-east-1:846973539254:domain/test/*'
                             'Fn::Join': [ '/', ['Fn::Join': [ ':', [ 'arn:aws:es', !Ref 'AWS::Region', !Ref 'AWS::AccountId', 'domain'] ], !Ref 'DomainName', '*' ] ]
+                        Condition:
+                            IpAddress:
+                                'aws:SourceIp':
+                                    - !Ref AllowedCIDR
+                                    - '98.216.147.13/32'
             DomainName:
                 Ref: DomainName
             EBSOptions:
@@ -100,8 +112,6 @@ Resources:
                 ZoneAwarenessEnabled: 'true'
             ElasticsearchVersion:
                 Ref: ElasticsearchVersion
-            SnapshotOptions:
-                AutomatedSnapshotStartHour: 0
             Tags:
                 - Key: 'Name'
                   Value:
