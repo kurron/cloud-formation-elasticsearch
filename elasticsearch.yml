@@ -32,6 +32,10 @@ Parameters:
         Type: 'String'
         Default: 'No notes'
 
+    DomainName:
+        Description: 'A name for the Amazon ES domain'
+        Type: 'String'
+
     VolumeSize:
         Description: 'The size of the EBS volume for each data node.'
         Type: 'Number'
@@ -73,8 +77,8 @@ Resources:
                         Resource:
                             # 'arn:aws:es:us-east-1:846973539254:domain/test/*'
                             'Fn::Join': [ '/', ['Fn::Join': [ ':', [ 'arn:aws:es', !Ref 'AWS::Region', !Ref 'AWS::AccountId', 'domain'] ], !Ref 'DomainName', '*' ] ]
-            AdvancedOptions:
-                rest.action.multi.allow_explicit_index: 'true'
+            DomainName:
+                Ref: DomainName
             EBSOptions:
                 EBSEnabled: true
                 Iops:
