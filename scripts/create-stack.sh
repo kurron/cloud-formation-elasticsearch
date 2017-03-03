@@ -3,13 +3,12 @@
 # creates a stack in AWS via CloudFromation
 
 STACKNAME=${1:-Weapon-X-Search}
-DOMAINNAME=${2:-weapon-x}
-PROJECTNAME=${3:-Weapon-X}
-VOLUME_SIZE=${4:-10}
-ENVIRONMENT=${5:-development}
-CREATOR=${6:-CloudFormation}
-PURPOSE=${7:-Testing}
-TEMPLATELOCATION=${8:-file://$(pwd)/elasticsearch.yml}
+PROJECTNAME=${2:-Weapon-X}
+VOLUME_SIZE=${3:-10}
+ENVIRONMENT=${4:-development}
+CREATOR=${5:-CloudFormation}
+PURPOSE=${6:-Testing}
+TEMPLATELOCATION=${7:-file://$(pwd)/elasticsearch.yml}
 
 VALIDATE="aws cloudformation validate-template --template-body $TEMPLATELOCATION"
 echo $VALIDATE
@@ -22,11 +21,10 @@ CREATE="aws cloudformation create-stack --stack-name $STACKNAME \
                                         --parameters ParameterKey=Project,ParameterValue=$PROJECTNAME \
                                                      ParameterKey=Environment,ParameterValue=$ENVIRONMENT \
                                                      ParameterKey=Creator,ParameterValue=$CREATOR \
-                                                     ParameterKey=DomainName,ParameterValue=$DOMAINNAME \
                                                      ParameterKey=VolumeSize,ParameterValue=$VOLUME_SIZE \
                                         --tags Key=Project,Value=$PROJECTNAME \
                                                Key=Purpose,Value=$PURPOSE \
                                                Key=Environment,Value=$ENVIRONMENT \
                                                Key=Creator,Value=$CREATOR"
 echo $CREATE
-$CREATE
+#$CREATE
